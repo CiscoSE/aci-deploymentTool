@@ -24,7 +24,15 @@ class urlFunctions:
         self.writeEvent(msg = f"URL: {url}")
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
         getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
-        print(getCookieResponse.status_code)
+        self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
+        return
+    
+    def httpErrorReporting(self, status, reason=''):
+        if status in range(200, 299):
+            self.writeEvent(msg=f'API Access Completed Successfully')
+        elif status in range(400, 599):
+            self.writeEvent(msg=f'API Access Failed\tReason: {reason}',msgType='FAIL')
+            exit()
         return
 
 class loggingFunctions:
