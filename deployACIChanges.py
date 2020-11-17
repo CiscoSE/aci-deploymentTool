@@ -36,5 +36,8 @@ def main():
     URL = urlFunctions(args)
     #Get Cookie
     cookie = URL.getCookie(args.user, args.password)['APIC-cookie']
+    locateFiles()
     return
+def locateFiles():
+    print(args)
 main()
