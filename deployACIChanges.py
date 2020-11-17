@@ -35,7 +35,6 @@ def main():
     # Initialize API access object
     URL = urlFunctions(args)
     #Get Cookie
-    URL.getCookie(args.user, args.password)
+    cookie = URL.getCookie(args.user, args.password)['APIC-cookie']
     return
-
 main()

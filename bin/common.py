@@ -4,18 +4,17 @@ URL.packages.urllib3.disable_warnings()
 
 class urlFunctions:
     def __init__(self, args):
-        self.header = {"Content-Type": "application/xml"}
         self.server = args.server
         self.sourceFolder = args.sourceFolder
         self.writeScreen = loggingFunctions().writeScreen
         self.writeEvent = loggingFunctions().writeEvent
         return
 
-    def getData(self, url, htmlMethod='GET', data=''):
+    def getData(self, url, htmlMethod='GET', data='', headers={"Content-Type": "application/xml"}):
         if htmlMethod == "POST":
-            apiResponse = URL.post(url=url, data=data, headers=self.header, verify=False)
+            apiResponse = URL.post(url=url, data=data, headers=headers, verify=False)
         elif htmlMethod == "GET":
-            apiResponse = URL.get(url=url, headers=self.header, verify=False)
+            apiResponse = URL.get(url=url, headers=headers, verify=False)
         return apiResponse
 
     def getCookie(self, user, password):
@@ -25,13 +24,14 @@ class urlFunctions:
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
         getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
         self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
-        return
+        return getCookieResponse.cookies
     
     def httpErrorReporting(self, status, reason=''):
         if status in range(200, 299):
             self.writeEvent(msg=f'API Access Completed Successfully')
         elif status in range(400, 599):
             self.writeEvent(msg=f'API Access Failed\tReason: {reason}',msgType='FAIL')
+            self.writeEvent(msg='Script will exit',msgType='FAIL')
             exit()
         return
 
