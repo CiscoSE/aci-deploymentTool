@@ -41,11 +41,11 @@ Deployment Tool for pushing XML configuration files for Cisco ACI APICs.
 """
 
 argsParse = argparse.ArgumentParser(description=helpMsg)
-argsParse.add_argument('-s', '--server',         action='store', dest='server',       default='10.82.66.223', help='APIC IP addresses or FQDN to be changed.' )
-argsParse.add_argument('-u', '--user',           action='store', dest='user',         default='admin',        help='User name for APIC Access' )
-argsParse.add_argument('-p', '--password',       action='store', dest='password',     default='somePassword', help='Password for APIC Access' )
-argsParse.add_argument('-f', '--source-folder',  action='store', dest='sourceFolder', default='somePassword', help='Password for APIC Access' )
-
+argsParse.add_argument('-s', '--server',           action='store', dest='server',          default='10.82.66.223',       help='APIC IP addresses or FQDN to be changed.' )
+argsParse.add_argument('-u', '--user',             action='store', dest='user',            default='admin',              help='User name for APIC Access' )
+argsParse.add_argument('-p', '--password',         action='store', dest='password',        default='somePassword',       help='Password for APIC Access' )
+argsParse.add_argument('-f', '--source-folder',    action='store', dest='sourceFolder',    default='./sourceFolder/',    help='Source location for changes to be made' )
+argsParse.add_argument('-P', '--processed-folder', action='store', dest='processedFolder', default='./processedFolder/', help='Location for files that have been processed' )
 args = argsParse.parse_args()
 
 # Functions
@@ -57,12 +57,13 @@ def main():
     locateFiles()
     return
 def locateFiles():
-    print(args)
+        
     return
 
 def checkFolderStructure():
-    # Does the source folder exist? Cannot continue without it.
-    # Does the processed folder exist? Make it if it doesn't exist.
+    # Does the source folder exist? Cannot continue without it, but we will create one and tell where we put it.
+    # Does the processed folder exist? Make it does if it is not there already.
+
     return
 
 main()
