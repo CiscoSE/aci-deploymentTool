@@ -4,7 +4,7 @@ URL.packages.urllib3.disable_warnings()
 
 class urlFunctions:
     def __init__(self, args):
-        self.server = args.server
+        self.apic = args.apic
         self.sourceFolder = args.sourceFolder
         self.writeScreen = loggingFunctions().writeScreen
         self.writeEvent = loggingFunctions().writeEvent
@@ -19,7 +19,7 @@ class urlFunctions:
 
     def getCookie(self, user, password):
         self.writeScreen(msg='########## Starting Process to Get Cookie ##########')
-        url = "https://{0}{1}".format(self.server, "/api/aaaLogin.xml")
+        url = "https://{0}{1}".format(self.apic, "/api/aaaLogin.xml")
         self.writeEvent(msg = f"URL: {url}")
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
         getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
