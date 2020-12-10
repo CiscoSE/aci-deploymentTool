@@ -55,7 +55,7 @@ def getPassword():
 argsParse = argparse.ArgumentParser(description=helpMsg)
 argsParse.add_argument('-a', '--APIC',             action='store', dest='apic',            default=defaultAPIC,            help='APIC IP addresses or FQDN to be changed.' )
 argsParse.add_argument('-u', '--user',             action='store', dest='user',            default=defaultUser,            help='User name for APIC Access' )
-argsParse.add_argument('-p', '--password',         action='store', dest='password',        default=getPassword(),            help='Password for APIC Access' )
+argsParse.add_argument('-p', '--password',         action='store', dest='password',        default=getPassword(),          help='Password for APIC Access' )
 argsParse.add_argument('-f', '--source-folder',    action='store', dest='sourceFolder',    default=defaultSourceFolder,    help='Source location for changes to be made' )
 argsParse.add_argument('-P', '--processed-folder', action='store', dest='processedFolder', default=defaultProcessedFolder, help='Location for files that have been processed' )
 args = argsParse.parse_args()
@@ -66,7 +66,9 @@ def main():
     URL = urlFunctions(args)
     #Get Cookie
     cookie = URL.getCookie(args.user, args.password)['APIC-cookie']
-    processFiles()
+    fullFileList = processFiles()
+    for file in fullFileList:
+        processFile(xmlFile=file, cookie=cookie)
     return
 
 def processFiles():
@@ -75,8 +77,7 @@ def processFiles():
     validateDirectory(Folder=args.processedFolder, defaultFolderName=defaultProcessedFolder, title="Processed")
 
     #Get files and process
-    getFileList(args.sourceFolder)    
-    return
+    return getFileList(args.sourceFolder)    
 
 def getFileList(sourceFolder):
     loggingFunctions().writeEvent(msg="Getting files from source folder")
@@ -94,8 +95,46 @@ def getFileList(sourceFolder):
     if (len(fullFileList)) != (len(listOfFiles)):
         loggingFunctions().writeEvent(msg = f"Found {len(listOfFiles)}, but only normalized {len(fullFileList)}. Script cannot continue",msgType = 'FAIL')
     else:
-        loggingFunctions().writeEvent(msg = f"Files Successfully Normalized: {len(fullFileList)}")
+        loggingFunctions().writeEvent(msg=f"Files Successfully Normalized: {len(fullFileList)}")
+    return fullFileList
+
+def processFile(xmlFile, cookie):
+    loggingFunctions().writeEvent(msg=f"Processing file: {xmlFile}")
+    thisFileRAW = open(xmlFile, 'r')
+    #This must be the DN comment line. The file cannot be processed without this.
+    regexSearchResult = (re.search(' (dn=.*) ', thisFileRAW.readline()))
+    if regexSearchResult is None:
+        #We don't have a DN, so we cannot continue
+        loggingFunctions().writeEvent(msg="\tNo DN Found in this file. Processing of this file cannot continue.", msgType='WARN')
+        handleDnFailure()
+        exit()
+    else:
+        dn = f"{regexSearchResult.group(1)}".split('=',1)[1]
+        loggingFunctions().writeEvent(msg=f'\tDN Found: {dn}')
+    #print(thisFileRAW.read())
+    #TODO Import file to variable
+    #TODO validate first line contains a DN in XML comments
+    #TODO format request for 
     return
+
+def makeURL(dn):
+
+    return
+
+def handleDnFailure():
+    #Simple routine to handle yes or no input. 
+    #TODO Wold be better if this routine just returned true or false so I could use it elsewhere without modification. 
+    while True:
+        question = input('\nDo you want to continue to process other files if they remain?\n')
+
+        if re.search('^[Nn]$|^[Nn][Oo]$', question):
+            loggingFunctions().writeEvent(msg="Script will exit",msgType='FAIL')
+            exit()
+        elif re.search('^[Yy][Ee][Ss]$|^[Yy]$', question):
+            loggingFunctions().writeEvent(msg="Script Will Continue")
+            break
+    return
+
 
 def normalizeFileList(listOfFiles, relativePath):
     #TODO Process each file name provided and append the full path to it.
