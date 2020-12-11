@@ -26,13 +26,12 @@ class urlFunctions:
         self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
         return getCookieResponse.cookies
     
-    def httpErrorReporting(self, status, reason=''):
+    def httpErrorReporting(self, status, reason='', msgType='FAIL'):
         if status in range(200, 299):
             self.writeEvent(msg=f'API Access Completed Successfully')
         elif status in range(400, 599):
-            self.writeEvent(msg=f'API Access Failed\tReason: {reason}',msgType='FAIL')
-            self.writeEvent(msg='Script will exit',msgType='FAIL')
-            exit()
+            self.writeEvent(msg=f'API Access Failed\tReason: {reason}',msgType=msgType)
+            self.writeEvent(msg='Script will exit',msgType=msgType)
         return
 
 class loggingFunctions:

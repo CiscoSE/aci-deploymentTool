@@ -102,6 +102,7 @@ def getFileList(sourceFolder):
     return fullFileList
 
 def processFile(xmlFile, cookie):
+    URL = urlFunctions(args)
     loggingFunctions().writeEvent(msg=f"Processing file: {xmlFile}")
     thisFileRAW = open(xmlFile, 'r')
     #This must be the DN comment line. The file cannot be processed without this.
@@ -121,8 +122,12 @@ def processFile(xmlFile, cookie):
 
     #Read remaining lines of the current file. We are not validating this xml. It will either work or it wont.
     data = thisFileRAW.readlines()
-
+    
+    #Headers need to include cookie
     header={"Content-Type": "application/xml", "APIC-cookie": f"{cookie}"}
+    
+    # Print URL and header
+    loggingFunctions().writeEvent
 
     if args.failSafe == False:
         loggingFunctions().writeEvent("\t########## FAILSAFE ENABLED - No Changes Will be Made ##########\n\n", "WARN")
@@ -131,13 +136,14 @@ def processFile(xmlFile, cookie):
         print(f"\tData To Send:\n{data}")
         #Output values only
     else:
-        print("Shouldn't be here")
         #Write the change to the Apic
-        urlFunctions(args).getData(htmlMethod="POST",data=data, url=url, headers=header)
+        changeResult = URL.getData(htmlMethod="POST",data=data, url=url, headers=header)
+        URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN')
+        print(f"Change Result:\t{changeResult.text}")
     return
 
-def makeURL(dn, dataType='xml'):
-    return f"https://{args.apic}/dn.{dataType}"
+def makeURL(dn, dataType='xml', moClass="mo"):
+    return f"https://{args.apic}/api/{moClass}/dn.{dataType}"
 
 def handleDnFailure():
     #Simple routine to handle yes or no input. 
