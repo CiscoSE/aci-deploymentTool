@@ -21,6 +21,7 @@ import os
 import argparse
 import getpass
 import re
+import textwrap         # Requires Python 3.3 or later. 
 
 
 
@@ -53,11 +54,12 @@ def getPassword():
     return getpass.getpass()
 
 argsParse = argparse.ArgumentParser(description=helpMsg)
-argsParse.add_argument('-a', '--APIC',             action='store', dest='apic',            default=defaultAPIC,            help='APIC IP addresses or FQDN to be changed.' )
-argsParse.add_argument('-u', '--user',             action='store', dest='user',            default=defaultUser,            help='User name for APIC Access' )
-argsParse.add_argument('-p', '--password',         action='store', dest='password',        default=getPassword(),          help='Password for APIC Access' )
-argsParse.add_argument('-f', '--source-folder',    action='store', dest='sourceFolder',    default=defaultSourceFolder,    help='Source location for changes to be made' )
-argsParse.add_argument('-P', '--processed-folder', action='store', dest='processedFolder', default=defaultProcessedFolder, help='Location for files that have been processed' )
+argsParse.add_argument('-a', '--APIC',             action='store',       dest='apic',            default=defaultAPIC,            help='APIC IP addresses or FQDN to be changed.' )
+argsParse.add_argument('-u', '--user',             action='store',       dest='user',            default=defaultUser,            help='User name for APIC Access' )
+argsParse.add_argument('-p', '--password',         action='store',       dest='password',        default=getPassword(),          help='Password for APIC Access' )
+argsParse.add_argument('-f', '--source-folder',    action='store',       dest='sourceFolder',    default=defaultSourceFolder,    help='Source location for changes to be made' )
+argsParse.add_argument('-P', '--processed-folder', action='store',       dest='processedFolder', default=defaultProcessedFolder, help='Location for files that have been processed')
+argsParse.add_argument('--fail-safe',              action='store_true', dest='failSafe',                                        help='This line is required in order to make changes')
 args = argsParse.parse_args()
 
 # Functions
@@ -80,6 +82,7 @@ def processFiles():
     return getFileList(args.sourceFolder)    
 
 def getFileList(sourceFolder):
+    #TODO Add sort so that if files need to be processed in a specific order that is possible through the naming of the files. 
     loggingFunctions().writeEvent(msg="Getting files from source folder")
     listOfFiles = os.listdir(sourceFolder)
     if (len(listOfFiles)) == 0:
@@ -108,18 +111,33 @@ def processFile(xmlFile, cookie):
         loggingFunctions().writeEvent(msg="\tNo DN Found in this file. Processing of this file cannot continue.", msgType='WARN')
         handleDnFailure()
         exit()
+    dn = f"{regexSearchResult.group(1)}".split('=',1)[1]
+
+    #TODO One day we might want to validate the DNs with known classes and warn if the DNs or classes don't make sense.
+    loggingFunctions().writeEvent(msg=f'\tDN Found: {dn}')
+
+    #Format a URL with the APIC address and DN 
+    url = makeURL(dn)
+
+    #Read remaining lines of the current file. We are not validating this xml. It will either work or it wont.
+    data = thisFileRAW.readlines()
+
+    header={"Content-Type": "application/xml", "APIC-cookie": f"{cookie}"}
+
+    if args.failSafe == False:
+        loggingFunctions().writeEvent("\t########## FAILSAFE ENABLED - No Changes Will be Made ##########\n\n", "WARN")
+        print(f"\tTarget URL:\t\t{url}\n\n")
+        print(f"\tHeader:\t\t{header}")
+        print(f"\tData To Send:\n{data}")
+        #Output values only
     else:
-        dn = f"{regexSearchResult.group(1)}".split('=',1)[1]
-        loggingFunctions().writeEvent(msg=f'\tDN Found: {dn}')
-    #print(thisFileRAW.read())
-    #TODO Import file to variable
-    #TODO validate first line contains a DN in XML comments
-    #TODO format request for 
+        print("Shouldn't be here")
+        #Write the change to the Apic
+        urlFunctions.getData(htmlMethod="POST",data=data, url=url, header=header)
     return
 
-def makeURL(dn):
-
-    return
+def makeURL(dn, dataType='xml'):
+    return f"https://{args.apic}/dn.{dataType}"
 
 def handleDnFailure():
     #Simple routine to handle yes or no input. 
