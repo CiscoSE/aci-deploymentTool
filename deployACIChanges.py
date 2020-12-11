@@ -133,7 +133,7 @@ def processFile(xmlFile, cookie):
     else:
         print("Shouldn't be here")
         #Write the change to the Apic
-        urlFunctions.getData(htmlMethod="POST",data=data, url=url, headers=header)
+        urlFunctions(args).getData(htmlMethod="POST",data=data, url=url, headers=header)
     return
 
 def makeURL(dn, dataType='xml'):
