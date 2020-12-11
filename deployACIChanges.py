@@ -133,7 +133,7 @@ def processFile(xmlFile, cookie):
     else:
         print("Shouldn't be here")
         #Write the change to the Apic
-        urlFunctions.getData(htmlMethod="POST",data=data, url=url, header=header)
+        urlFunctions.getData(htmlMethod="POST",data=data, url=url, headers=header)
     return
 
 def makeURL(dn, dataType='xml'):
@@ -179,7 +179,7 @@ def validateDirectory(Folder, defaultFolderName, title, failureAction='FAIL'):
         if (defaultFolderName == Folder) and  (os.path.isdir(defaultFolderName) == False):
             # We will create the source folder and tell the user to use that folder.
             os.mkdir(defaultFolderName)
-            loggingFunctions().writeEvent(msg=f"{title} directory not found. New Folder created here: {defaultDirectory}", msgType=failureAction)
+            loggingFunctions().writeEvent(msg=f"{title} directory not found. New Folder created here: {Folder}", msgType=failureAction)
             exit()
         else:
             loggingFunctions().writeEvent(msg=f"{title} directory could not be found. Use default directory or specify correct location of {title} files to use this script.", msgType=failureAction)
