@@ -12,7 +12,7 @@ class urlFunctions:
 
     def getData(self, url, htmlMethod='GET', data='', headers={"Content-Type": "application/xml"}):
         if htmlMethod == "POST":
-            apiResponse = URL.post(url=url, data=data, headers=headers, verify=False)
+            apiResponse = URL.post(url=url, data=f"{data}", headers=headers, verify=False)
         elif htmlMethod == "GET":
             apiResponse = URL.get(url=url, headers=headers, verify=False)
         return apiResponse
