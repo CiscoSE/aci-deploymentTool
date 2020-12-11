@@ -76,7 +76,7 @@ def main():
 def processFiles():
     #Validate the directories are there and create them if they are not. If we don't have directories, we don't need to continue.
     validateDirectory(Folder=args.sourceFolder, defaultFolderName=defaultSourceFolder, title="Source")
-    validateDirectory(Folder=args.processedFolder, defaultFolderName=defaultProcessedFolder, title="Processed")
+    validateDirectory(Folder=args.processedFolder, defaultFolderName=defaultProcessedFolder, title="Processed",failureAction="WARN")
 
     #Get files and process
     return getFileList(args.sourceFolder)    
@@ -179,7 +179,7 @@ def validateDirectory(Folder, defaultFolderName, title, failureAction='FAIL'):
         if (defaultFolderName == Folder) and  (os.path.isdir(defaultFolderName) == False):
             # We will create the source folder and tell the user to use that folder.
             os.mkdir(defaultFolderName)
-            loggingFunctions().writeEvent(msg=f"{title} directory not found. Please place files in the following folder:\t{defaultFolderName}", msgType=failureAction)
+            loggingFunctions().writeEvent(msg=f"{title} directory not found. New Folder created here: {defaultDirectory}", msgType=failureAction)
             exit()
         else:
             loggingFunctions().writeEvent(msg=f"{title} directory could not be found. Use default directory or specify correct location of {title} files to use this script.", msgType=failureAction)
