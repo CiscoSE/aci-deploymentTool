@@ -24,7 +24,7 @@ class urlFunctions:
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
         getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
         self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
-        return getCookieResponse.cookies
+        return getCookieResponse
     
     def httpErrorReporting(self, status, reason='', msgType='FAIL'):
         if status in range(200, 299):

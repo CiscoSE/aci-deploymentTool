@@ -67,7 +67,7 @@ def main():
     # Initialize API access object
     URL = urlFunctions(args)
     #Get Cookie
-    cookie = URL.getCookie(args.user, args.password)['APIC-cookie']
+    cookie = URL.getCookie(args.user, args.password).cookies
     fullFileList = processFiles()
     for file in fullFileList:
         processFile(xmlFile=file, cookie=cookie)
@@ -137,7 +137,7 @@ def processFile(xmlFile, cookie):
         #Output values only
     else:
         #Write the change to the Apic
-        changeResult = URL.getData(htmlMethod="POST",data=data, url=url, headers=header)
+        changeResult = URL.getData(htmlMethod="POST",data=data, url=url, headers=header, cookies=cookie)
         URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN')
         print(f"Change Result:\t{changeResult.text}")
     return
