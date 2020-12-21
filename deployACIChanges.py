@@ -119,6 +119,7 @@ def processFile(xmlFile, cookie):
 
     #Format a URL with the APIC address and DN 
     url = makeURL(dn)
+    loggingFunctions().writeEvent(f"url: {url}")
 
     #Read remaining lines of the current file. We are not validating this xml. It will either work or it wont.
     data = thisFileRAW.readlines()
@@ -143,7 +144,7 @@ def processFile(xmlFile, cookie):
     return
 
 def makeURL(dn, dataType='xml', moClass="mo"):
-    return f"https://{args.apic}/api/{moClass}/dn.{dataType}"
+    return f"https://{args.apic}/api/{moClass}/{dn}.{dataType}"
 
 def handleDnFailure():
     #Simple routine to handle yes or no input. 
