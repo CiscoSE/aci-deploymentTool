@@ -10,9 +10,9 @@ class urlFunctions:
         self.writeEvent = loggingFunctions().writeEvent
         return
 
-    def getData(self, url, htmlMethod='GET', data='', headers={"Content-Type": "application/xml"}):
+    def getData(self, url, htmlMethod='GET',cookies='', data='', headers={"Content-Type": "application/xml"}):
         if htmlMethod == "POST":
-            apiResponse = URL.post(url=url, data=f"{data}", headers=headers, verify=False)
+            apiResponse = URL.post(url=url, data=f"{data}", headers=headers, verify=False, cookies=cookies)
         elif htmlMethod == "GET":
             apiResponse = URL.get(url=url, headers=headers, verify=False)
         return apiResponse
