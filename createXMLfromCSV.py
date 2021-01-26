@@ -35,7 +35,7 @@ def writeTenant(tenant, outputFile, csvList):
     xmlFile = open(f'{outputFile}','w')
     xmlFile.write("<!-- dn=uni -->\n")
     xmlFile.write(f'<fvTenant name="{tenant}">\n')
-    getVrfs(outputFile = outputFile, csvList = csvList, tenant = tenant)
+    getVrfs(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
         #TODO find and write each VRF in this tenate. 
             #TODO Look for and write RP if present in any entries
         #TODO find and write each BD in this tenant.
@@ -58,34 +58,21 @@ def getTenants(csvList, outputDirectory):
         writeTenant(tenant = tenant, csvList = csvList, outputFile = f"{outputDirectory}/{fileTime}-{tenant}.xml")
     return
 
-def getVrfs(csvList, outputFile, tenant):
-    vrf_dict = {}
-    count = 0
+def getVrfs(csvList, xmlFile, tenant):
+    vrf_list = []
     for line in csvList:
-        if (line['VRF'], line['tenant']) not in vrf_dict and line['tenant'] == tenant:
-            print(f"tenant Name: {tenant}")
-            print(f"VRF Name: {line['VRF']}")
-            vrf_dict[(line['VRF'], line['tenant'])] = []
-            count = count + 1
-    print(count)
-    print(vrf_dict)
-    #writeVrfs(vrf_dict = vrf_dict, outputDirectory = outputDirectory)
+        if line['VRF'] not in vrf_list and line['tenant'] == tenant:
+            vrf_list.append(line['VRF'])
+    writeVrfs(vrf_list = vrf_list, xmlFile = xmlFile)
     return
 
 
-def writeVrfs(vrf_dict, outputDirectory):
-    outputDirectory.write('vrfs:\n')
-    for item in vrf_dict.items():
-        (tenant, vrf), rp = item
-        vrfFile = open(f'{outputDirectory}/{rowCount}-vrf.xml', 'w')
-        vrfFile.write(f'<!-- dn=uni/tn-{tenant} -->')
-        vrfFile.write
-        outputDirectory.write(f" - vrf: {vrf}\n")
-        outputDirectory.write(f"   tenant: {tenant}\n")
-
-        if rp != 'NA':
-            outputDirectory.write(f"   rp: {rp}\n")
-        rowCount = rowCount + 1
+def writeVrfs(vrf_list, xmlFile):
+    ipLearning = 'Enabled'
+    #TODO Account for Enforced.
+    for vrf in vrf_list:
+        xmlFile.write(f'\t<fvCtx name={vrf}>\n')
+        xmlFile.write('\t</fvCtx>\n')
 
 def getApps(csvList, outputDirectory):
     app_dict = {}
