@@ -35,7 +35,7 @@ def writeTenant(tenant, outputFile, csvList):
     xmlFile = open(f'{outputFile}','w')
     xmlFile.write("<!-- dn=uni -->\n")
     xmlFile.write(f'<fvTenant name="{tenant}">\n')
-    getVrfs()
+    getVrfs(outputFile = outputFile, csvList = csvList, tenant = tenant)
         #TODO find and write each VRF in this tenate. 
             #TODO Look for and write RP if present in any entries
         #TODO find and write each BD in this tenant.
@@ -47,18 +47,29 @@ def writeTenant(tenant, outputFile, csvList):
     return
 
 def getTenants(csvList, outputDirectory):
+    #Find all of the VRFS for a specific tenant.
     fileTime = (datetime.now().strftime("%Y%m%d-%H%M%S"))
+    tenant_list = []
     for line in csvList:
+        if line['tenant'] not in tenant_list:
+            tenant_list.append(line['tenant'])
+    for tenant in tenant_list:
         #We only write one tenant to each file, because we don't want to hit the 64K limit for API requests.
-        writeTenant(tenant = line['tenant'], csvList = csvList, outputFile = f"{outputDirectory}/{fileTime}-{line['tenant']}.xml")
+        writeTenant(tenant = tenant, csvList = csvList, outputFile = f"{outputDirectory}/{fileTime}-{tenant}.xml")
     return
 
-def getVrfs(csvList, outputDirectory):
+def getVrfs(csvList, outputFile, tenant):
     vrf_dict = {}
+    count = 0
     for line in csvList:
-        if (line['tenant'], line['VRF']) not in vrf_dict or (line['RP'] != 'NA' and line['RP'] != ''):
-            vrf_dict[(line['tenant'], line['VRF'])] = line['RP']
-    writeVrfs(vrf_dict = vrf_dict, outputDirectory = outputDirectory)
+        if (line['VRF'], line['tenant']) not in vrf_dict and line['tenant'] == tenant:
+            print(f"tenant Name: {tenant}")
+            print(f"VRF Name: {line['VRF']}")
+            vrf_dict[(line['VRF'], line['tenant'])] = []
+            count = count + 1
+    print(count)
+    print(vrf_dict)
+    #writeVrfs(vrf_dict = vrf_dict, outputDirectory = outputDirectory)
     return
 
 
