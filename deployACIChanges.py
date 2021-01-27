@@ -21,6 +21,7 @@ import os
 import argparse
 import getpass
 import re
+import ntpath
 import textwrap         # Requires Python 3.3 or later. 
 
 
@@ -138,7 +139,11 @@ def processFile(xmlFile, cookie):
         #Output values only
     else:
         #Write the change to the Apic
-        changeResult = URL.getData(htmlMethod="POST",data=data, url=url, headers=header, cookies=cookie)
+        changeResult = URL.getData(htmlMethod="POST", data=data, url=url, headers=header, cookies=cookie)
+        fileToMove = thisFileRAW.name
+        thisFileRAW.close
+        os.rename(f'{fileToMove}', f'{args.processedFolder}{ntpath.basename(fileToMove)}')
+        loggingFunctions().writeEvent('Moved {fileToMove} to {args.processedFolder}', "INFO")
         URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN')
         print(f"Change Result:\t{changeResult.text}")
     return
