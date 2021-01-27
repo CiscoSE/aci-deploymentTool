@@ -59,19 +59,31 @@ def getTenants(csvList, outputDirectory):
     return
 
 def getVrfs(csvList, xmlFile, tenant):
-    vrf_list = []
+    vrf_dict = {}
     for line in csvList:
-        if line['VRF'] not in vrf_list and line['tenant'] == tenant:
-            vrf_list.append(line['VRF'])
-    writeVrfs(vrf_list = vrf_list, xmlFile = xmlFile)
+        if line['VRF'] not in vrf_dict and line['tenant'] == tenant:
+            vrf_dict[(line['VRF'])] = line['vrfEnforced']
+    writeVrfs(vrf_dict = vrf_dict, xmlFile = xmlFile)
     return
 
+def validateEnforced(enforced):
+    if enforced.lower() == 'true' or enforced.lower() == 'enforced':
+        return 'enforced'
+    elif enforced.lower() == 'false' or enforced.lower() == 'unenforced':
+        return 'unenforced'
+    else:
+        return 'enforced'
 
-def writeVrfs(vrf_list, xmlFile):
-    ipLearning = 'Enabled'
+
+def writeVrfs(vrf_dict, xmlFile, pcEnfPref="enforced"):
+    #Default Values for VRF.
+    ipDataPlaneLearning = 'enabled'
+    #pcEnfPref = "unenforced"
     #TODO Account for Enforced.
-    for vrf in vrf_list:
-        xmlFile.write(f'\t<fvCtx name={vrf}>\n')
+    for item in vrf_dict.items():
+        (vrf), enforced = item
+        enforced = validateEnforced(enforced)
+        xmlFile.write(f'\t<fvCtx name={vrf} ipDataPlaneLearning="{ipDataPlaneLearning}" pcEnfPref="{enforced}">\n')
         xmlFile.write('\t</fvCtx>\n')
 
 def getApps(csvList, outputDirectory):
