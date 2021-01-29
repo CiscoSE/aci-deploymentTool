@@ -34,9 +34,11 @@ args = argsParse.parse_args()
 def writeTenant(tenant, outputFile, csvList):
     xmlFile = open(f'{outputFile}','w')
     xmlFile.write("<!-- dn=uni -->\n")
+    xmlFile.write('<!-- Above line is required if using deployment script -->\n')
+    xmlFile.write(f'<!-- Creating Tenant {tenant} -->\n')
     xmlFile.write(f'<fvTenant name="{tenant}">\n')
     getVrfs(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
-        #TODO find and write each VRF in this tenate. 
+    getBridgeDomains(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
             #TODO Look for and write RP if present in any entries
         #TODO find and write each BD in this tenant.
             #TODO Look for and write any Subnets associated with Bridge Domain
@@ -63,7 +65,9 @@ def getVrfs(csvList, xmlFile, tenant):
     for line in csvList:
         if line['VRF'] not in vrf_dict and line['tenant'] == tenant:
             vrf_dict[(line['VRF'])] = line['vrfEnforced']
-    writeVrfs(vrf_dict = vrf_dict, xmlFile = xmlFile)
+    #writeVrfs(vrf_dict = vrf_dict, xmlFile = xmlFile)
+    for vrf in vrf_dict.items():
+        writeVrf(vrf_item = vrf, xmlFile = xmlFile)
     return
 
 def validateEnforced(enforced):
@@ -75,16 +79,16 @@ def validateEnforced(enforced):
         return 'enforced'
 
 
-def writeVrfs(vrf_dict, xmlFile, pcEnfPref="enforced"):
+def writeVrf(vrf_item, xmlFile, pcEnfPref="enforced"):
     #Default Values for VRF.
     ipDataPlaneLearning = 'enabled'
     #pcEnfPref = "unenforced"
     #TODO Account for Enforced.
-    for item in vrf_dict.items():
-        (vrf), enforced = item
-        enforced = validateEnforced(enforced)
-        xmlFile.write(f'\t<fvCtx name={vrf} ipDataPlaneLearning="{ipDataPlaneLearning}" pcEnfPref="{enforced}">\n')
-        xmlFile.write('\t</fvCtx>\n')
+    (vrf), enforced = vrf_item
+    enforced = validateEnforced(enforced)
+    xmlFile.write(f'\t<!-- Create {enforced} VRF {vrf} -->\n')
+    xmlFile.write(f'\t<fvCtx name={vrf} ipDataPlaneLearning="{ipDataPlaneLearning}" pcEnfPref="{enforced}">\n')
+    xmlFile.write('\t</fvCtx>\n')
 
 def getApps(csvList, outputDirectory):
     app_dict = {}
@@ -102,25 +106,41 @@ def writeApps(outputDirectory, app_dict):
         outputDirectory.write(f'   tenant: {tenant}\n')
     return
 
-def getBridgeDomains(outputDirectory, csvList):
+def getBridgeDomains(xmlFile, csvList, tenant):
     bd_dict = {}
     for line in csvList:
-        if (line['tenant'], line['VRF'], line['bridgeDomain'], line['gateway'], line['mask'], line['l3Out']) not in bd_dict:
-            bd_dict[(line['tenant'], line['VRF'], line['bridgeDomain'], line['gateway'], line['mask'], line['l3Out'])] = []
-    writeBridgeDomains(outputDirectory = outputDirectory, bd_dict = bd_dict)
+        if (line['tenant'], line['VRF'], line['bridgeDomain']) not in bd_dict and line['tenant'] == tenant:
+            bd_dict[(line['bridgeDomain'])] = line['VRF']
+    for bd_items in bd_dict.items():
+        gateway_dict = findBridgeDomainGateways(csvList = csvList, bd_items = bd_items)
+        writeBridgeDomains(xmlFile = xmlFile, bd_items = bd_items, gateway_dict = gateway_dict)
     return
 
-def writeBridgeDomains(outputDirectory, bd_dict, scope='public'):
-    outputDirectory.write('bridge_domains:\n')
-    for item in bd_dict:
-        (tenant, VRF, bridgeDomain, gateway, mask, l3Out) = item
-        outputDirectory.write(f' - bd: {bridgeDomain}\n')
-        outputDirectory.write(f'   gateway: {gateway}\n')
-        outputDirectory.write(f'   mask: {mask}\n')
-        outputDirectory.write(f'   tenant: {tenant}\n')
-        outputDirectory.write(f'   vrf: {VRF}\n')
-        outputDirectory.write(f'   scope: {scope}\n')
-        outputDirectory.write(f'   L3Out: {l3Out}\n')
+def findBridgeDomainGateways(csvList, bd_items):
+    #Looks for all bridge domain default gateways and returns a list
+    #of gateways we need to add to the BD when we create it.
+    (bd), vrf = bd_items
+    gateway_dict = collections.OrderedDict()
+    for line in csvList:
+        if line['bridgeDomain'] == bd and line['VRF'] == vrf and (line['gateway']) not in gateway_dict and (line['gateway'] != 'NA' and line['gateway'] != ''):
+            #add ordered gateway to ordered dictionary
+            gateway_dict[(line['gateway'])] = line['mask']
+    return gateway_dict
+
+def writeBridgeDomains(xmlFile, bd_items, gateway_dict, scope='public'):
+    (bd), vrf = bd_items
+    limitIpLearnToSubnets = "no"
+    epMoveDetectMode = "garp"
+    unkMacUcastAct = "flood"
+    xmlFile.write(f'\t<!-- Bridge Domain for {bd} -->\n')
+    xmlFile.write(f'\t<fvBD arpFlood="yes" limitIpLearnToSubnets="{limitIpLearnToSubnets}" unkMacUcastAct="{unkMacUcastAct}" epMoveDetectMode="{epMoveDetectMode}" name="{bd}" >\n')
+    xmlFile.write(f'\t\t<!-- Assigns VRF {vrf} for Bridge Domain {bd} -->\n')
+    xmlFile.write(f'\t\t<fvRsCtx annotation="" tnFvCtxName="{vrf}" />\n')
+    for line in gateway_dict.items():
+        (gateway), mask = line
+        xmlFile.write(f'\t\t<!-- Subnet {gateway}/{mask} written to Bridge Domain {bd} -->\n')
+        xmlFile.write(f'\t\t<fvSubnet ip="{gateway}/{mask}" preferred="yes" scope="public,shared" virtual="no"/>\n')
+    xmlFile.write('\t</fvBD>\n')
     return
 
 def getEPGs(outputDirectory, csvList):
