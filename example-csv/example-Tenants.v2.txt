@@ -1,0 +1,13 @@
+bridgeDomain	gateway	mask	tenant	VRF	vrfEnforced	appProfile	description	epgName	domain	domainType	contract	encap	filter	l3Out	multiVRF	RP
+BD_1200	172.16.200.2	30	SERVICES	services-vrf	TRUE	Management	ESXi Management EPG	Lw	Infrastructure	phys	SERVICES-Contract	1200	services-allow_all	L3Out_OOB	YES	10.200.1.1
+BD_1201	172.16.200.5	30	SERVICES	services-vrf	TRUE	Management	HX Storage Data EPG	EPG_1201	Infrastructure	phys	SERVICES-Contract	1201	services-allow_all	NA	NA	
+BD_1202	172.16.200.9	30	SERVICES	services-vrf	TRUE	Management	ESXi vMtion EPG	EPG_1202	Infrastructure	phys	SERVICES-Contract	1202	services-allow_all	NA	NA	NA
+BD_1203	172.16.200.13	30	SERVICES	services-uneforced-vrf	FALSE	Management	HX Storage Data EPG HX-2	EPG_1203	Infrastructure	phys	SERVICES-Contract	1203	services-allow_all	NA	NA	NA
+BD_199	172.16.200.17	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 199	EPG_199	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	199	EXAMPLE-allow_all	NA	YES	NA
+BD_100	172.16.200.21	30	EXAMPLE	example-vrf	TRUE	EXAMPLE2	Vlan 100	EPG_100	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	100	EXAMPLE-allow_all	NA	YES	NA
+BD_225	172.16.200.25	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 225	EPG_225	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	225	EXAMPLE-allow_all	NA	YES	NA
+BD_235	172.16.200.29	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 235	EPG_235	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	235	EXAMPLE-allow_all	NA	YES	NA
+BD_3131	172.16.200.33	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 3131	EPG_3131	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	3131	EXAMPLE-allow_all	NA	YES	NA
+BD_12	172.16.200.37	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 12	EPG_12	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	12	EXAMPLE-allow_all	NA	YES	NA
+BD_200	172.16.200.41	30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 200	EPG_200	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	200	EXAMPLE-allow_all	NA	YES	NA
+BD_30		30	EXAMPLE	example-uneforced-vrf	FALSE	EXAMPLE	Vlan 30	EPG_30	EXAMPLE-hx-dvs	vmm	EXAMPLE-Contract	30	EXAMPLE-allow_all	NA	YES	NA

@@ -172,28 +172,16 @@ def writeEPGs(xmlFile, epg_dict):
         elif domainType.lower() == "phys":
             xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
         xmlFile.write('\t\t</fvAEPg>\n') 
-
     return
 
 def processCSV(outputDirectory):
     with open(f'{args.inputFilePath}', mode='r', encoding="utf-8-sig") as rawFile:
         #We open this as a list because we iterate it more than once
-        csvContent = list(csv.DictReader(rawFile))
+        csvContent = list(csv.DictReader(rawFile, delimiter='\t'))
 
         #Generate Tenant List and write to outputDirectory
         getTenants(outputDirectory = outputDirectory, csvList = csvContent)
 
-        #Generate VRF List and write to outputDirectory
-        #getVrfs(outputDirectory = outputDirectory, csvList = csvContent)
-
-        #Generate Application Profile List and write to outputDirectory
-        #getApps(outputDirectory = outputDirectory, csvList = csvContent)
-        
-        #Generate Bridge Domain Profile List and write to outputDirectory
-        #getBridgeDomains(outputDirectory = outputDirectory, csvList = csvContent)
-
-        #Generate EPGs and write outputDirectory
-        #getEPGs(outputDirectory = outputDirectory, csvList = csvContent)
 
 rowCount = 1
 processCSV(args.outputDirectory)
