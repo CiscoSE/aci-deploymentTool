@@ -39,6 +39,7 @@ def writeTenant(tenant, outputFile, csvList):
     xmlFile.write(f'<fvTenant name="{tenant}">\n')
     getVrfs(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
     getBridgeDomains(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
+    getApps(xmlFile = xmlFile, csvList = csvList, tenant = tenant)
             #TODO Look for and write RP if present in any entries
         #TODO find and write each BD in this tenant.
             #TODO Look for and write any Subnets associated with Bridge Domain
@@ -90,20 +91,19 @@ def writeVrf(vrf_item, xmlFile, pcEnfPref="enforced"):
     xmlFile.write(f'\t<fvCtx name={vrf} ipDataPlaneLearning="{ipDataPlaneLearning}" pcEnfPref="{enforced}">\n')
     xmlFile.write('\t</fvCtx>\n')
 
-def getApps(csvList, outputDirectory):
-    app_dict = {}
-    for line in csvList:
-        if (line['tenant'], line['appProfile']) not in app_dict:
-            app_dict[(line['tenant'],line['appProfile'])] = []
-    writeApps(outputDirectory=outputDirectory, app_dict=app_dict)
+def getApps(csvList, xmlFile, tenant):
+    app_list = []
+    for item in csvList:
+        if (item['appProfile']) not in app_list and item['tenant'] == tenant:
+            app_list.append(item['appProfile'])
+    for app in app_list:
+        writeApps(xmlFile = xmlFile, app = app, csvList = csvList, tenant = tenant)
     return
 
-def writeApps(outputDirectory, app_dict):
-    outputDirectory.write('aps:\n')
-    for item in app_dict:
-        (tenant, app) = item
-        outputDirectory.write(f' - ap: {app}\n')
-        outputDirectory.write(f'   tenant: {tenant}\n')
+def writeApps(xmlFile, app, csvList, tenant):
+    xmlFile.write(f'\t<fvAp name="{app}">\n')
+    getEPGs(tenant = tenant, app = app, csvList = csvList, xmlFile = xmlFile)
+    xmlFile.write('\t</fvAp>\n')
     return
 
 def getBridgeDomains(xmlFile, csvList, tenant):
@@ -143,40 +143,36 @@ def writeBridgeDomains(xmlFile, bd_items, gateway_dict, scope='public'):
     xmlFile.write('\t</fvBD>\n')
     return
 
-def getEPGs(outputDirectory, csvList):
+def getEPGs(xmlFile, app, csvList, tenant):
     epg_dict = {}
     for line in csvList:
-        epg_dict[(line['tenant'],
-            line['epgName'],
-            line['bridgeDomain'],
-            line['gateway'],
-            line['mask'],
-            line['description'],
-            line['multiVRF'],
-            line['domain'],
-            line['domainType'],
-            line['appProfile'],
-            line['encap'],
-            line['encapType'])] = []
-    writeEPGs(outputDirectory = outputDirectory, epg_dict = epg_dict)
+        print(f"Tenant: {tenant}\tApp: {app}\t EPG: {line['epgName']}")
+        if line['tenant'] == tenant and line['appProfile'] == app and (line['tenant'],line['appProfile'],line['epgName']) not in epg_dict:
+            epg_dict[(line['epgName'])] = (line['description'], line['domain'], line['domainType'], line['encap'],line['bridgeDomain'])
+    writeEPGs(xmlFile = xmlFile, epg_dict = epg_dict)
     return
 
-def writeEPGs(outputDirectory, epg_dict):
-    outputDirectory.write('epgs:\n')
-    for item in epg_dict:
-        (tenant, epgName, bridgeDomain, gateway, mask, description, multiVRF, domain, domainType, appProfile, encap, encapType) = item
-        outputDirectory.write(f' - epg: {epgName}\n')
-        outputDirectory.write(f'   tenant: {tenant}\n')
-        outputDirectory.write(f'   ap: {appProfile}\n')
-        outputDirectory.write(f'   bd: {bridgeDomain}\n')
-        outputDirectory.write(f'   domain: {domain}\n')
-        outputDirectory.write(f'   domainType: {domainType}\n')
-        outputDirectory.write(f'   encaps: {encap}\n')
-        outputDirectory.write(f'   encaptype: {encapType}\n')
-        outputDirectory.write(f'   gateway: {gateway}\n')
-        outputDirectory.write(f'   mask: {mask}\n')
-        outputDirectory.write(f'   description: {description}\n')
-        outputDirectory.write(f'   multivrf: {multiVRF}\n')
+def writeEPGs(xmlFile, epg_dict):
+    #Default properties for vmmSecurity
+    allowPromiscuous = 'accept'
+    forgedTransmits = 'accept'
+    macChanges = 'reject'
+    for epg_item in epg_dict.items():
+        (epgName),(description, domain, domainType, encap, bridgeDomain) = epg_item
+        xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
+        xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
+        if int(encap) >= 1 and int(encap) <= 4999:
+            encap = f'vlan-{encap}'
+        else:
+            encap = 'unknown'
+        if domainType.lower() == "vmm":
+            xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/vmmp-VMware/dom-{domain}' encap='{encap}' instrImedcy='immediate' resImedcy='immediate'>\n")
+            xmlFile.write(f'\t\t\t\t<vmmSecP allowPromiscuous="{allowPromiscuous}" annotation="" descr="" forgedTransmits="{forgedTransmits}" macChanges="{macChanges}" name="" nameAlias="" ownerKey="" ownerTag=""/>\n')
+            xmlFile.write('\t\t\t</fvRsDomAtt>\n')
+        elif domainType.lower() == "phys":
+            xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
+        xmlFile.write('\t\t</fvAEPg>\n') 
+
     return
 
 def processCSV(outputDirectory):
