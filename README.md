@@ -37,12 +37,14 @@ The following fields are required:
 - domainType - The type of domain being added
 -- phys or vmm are the only supported domain types at this time.
 - encap - the VLAN number to be assigned to the domain for domain assignments.
+- providedContract - maps a provided contact to this EPG
+- consumedContract - maps a consumed contract to this EPG
 Optional fields:
 - description - The description for the EPG
 - multiVRF - When set to YES, routes from bridge domain subnet can be shared with other VRFs. If set to anything else, bridge domain subnet will not be shared with other VRFs.
 
 Future Options:
-Still working on L3Out and rrendezvous points (RP). These field will be implemented in future revisions. Additional support for contract mapping to existing contracts is also planned.
+Still working on L3Out and rendezvous points (RP). These field will be implemented in future revisions. Additional support for contract mapping to existing contracts is also planned.
 
 Command line example - Run createXMLfromTSV.py with python3 with the example txt file as a source, and tenant output files written to the source folder in the same directory:
 
