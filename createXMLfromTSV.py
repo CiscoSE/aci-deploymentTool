@@ -137,6 +137,13 @@ def findBridgeDomainGateways(csvList, bd, tenant):
                 gateway_dict[((line['gateway']).strip())] = line['multiVRF']
     return gateway_dict
 
+def findL3OutForDomain(bd, tenant, csvList):
+    l3Out_list = []
+    for line in csvList:
+        if line['tenant'] == tenant and line['bridgeDomain'] == bd and line['l3Out'] != '' and line['l3Out'] != 'NA' and line['l3Out'] not in l3Out_list:
+            l3Out_list.append(line['l3Out'])
+    return l3Out_list
+
 def writeBridgeDomains(xmlFile, bd_items, csvList, tenant, scope='public'):
     (bd), vrf = bd_items
     limitIpLearnToSubnets = "no"
@@ -156,6 +163,9 @@ def writeBridgeDomains(xmlFile, bd_items, csvList, tenant, scope='public'):
         loggingFunctions().writeScreen(f'\t\tWriting subnet {gateway} with scope {scope}')
         xmlFile.write(f'\t\t<!-- Subnet {gateway} written to Bridge Domain {bd} -->\n')
         xmlFile.write(f'\t\t<fvSubnet ip="{gateway}" scope="{scope}" virtual="no"/>\n')
+    for l3Out in findL3OutForDomain(tenant=tenant, bd=bd, csvList=csvList):
+        loggingFunctions().writeScreen(f'\t\tWritting L3Out {l3Out} for {bd} bridge domain')
+        xmlFile.write(f'\t\t<fvRsBDToOut annotation="" tnL3extOutName="{l3Out}"/>')
     xmlFile.write('\t</fvBD>\n')
     return
 
@@ -164,7 +174,7 @@ def getEPGs(xmlFile, app, csvList, tenant):
     for line in csvList:
         #print(f"Tenant: {tenant}\tApp: {app}\t EPG: {line['epgName']}")
         if line['tenant'] == tenant and line['appProfile'] == app and (line['tenant'],line['appProfile'],line['epgName']) not in epg_dict:
-            epg_dict[(line['epgName'])] = (line['description'], line['domain'], line['domainType'], line['encap'],line['bridgeDomain'])
+            epg_dict[(line['epgName'])] = (line['description'], line['domain'], line['domainType'], line['encap'],line['bridgeDomain'],line['providedContract'], line['consumedContract'])
     writeEPGs(xmlFile = xmlFile, epg_dict = epg_dict)
     return
 
@@ -174,7 +184,7 @@ def writeEPGs(xmlFile, epg_dict):
     forgedTransmits = 'accept'
     macChanges = 'reject'
     for epg_item in epg_dict.items():
-        (epgName), (description, domain, domainType, encap, bridgeDomain) = epg_item
+        (epgName), (description, domain, domainType, encap, bridgeDomain, providedContract, consumedContract) = epg_item
         loggingFunctions().writeScreen(f'\t\tWriting EPG {epgName}')
         xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
         xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
@@ -190,6 +200,22 @@ def writeEPGs(xmlFile, epg_dict):
         elif domainType.lower() == "phys":
             loggingFunctions().writeScreen(f'\t\t\tWriting Physical domain: {domain} with encap {encap}')
             xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
+        if ',' in providedContract:
+            providedContracts = [oneProvContract.strip() for oneProvContract in providedContract.split(',')]
+            for pc in providedContracts:
+                xmlFile.write(f'\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{pc}"/>')
+        elif providedContract != '' and providedContract != 'NA':
+            loggingFunctions().writeScreen(f'\t\tWriting provided contract {providedContract}')
+            xmlFile.write(f'\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{providedContract}"/>')
+
+        if ',' in consumedContract:
+            consumedContracts = [oneConContract.strip() for oneConContract in consumedContract.split(',')]
+            for cc in consumedContracts:
+                loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {cc}')
+                xmlFile.write(f'\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{cc}"/>')
+        elif consumedContract != '' and consumedContract != 'NA':
+            loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {consumedContract}')
+            xmlFile.write(f'\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{consumedContract}"/>')
         xmlFile.write('\t\t</fvAEPg>\n') 
     return
 
