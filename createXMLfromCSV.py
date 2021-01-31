@@ -17,7 +17,7 @@ or implied.
 __status__ = "Demonstration only - Not maintained"
 
 #Requires Python 3.x 
-import csv, sys, argparse, collections
+import csv, sys, argparse, collections, re
 from datetime import datetime
 
 #Argument Processing
@@ -32,7 +32,9 @@ argsParse.add_argument('-o', '--output-file', action='store', dest='outputDirect
 args = argsParse.parse_args()
 
 def writeTenant(tenant, outputFile, csvList):
+    loggingFunctions().writeScreen(f'Opening file:\t{outputFile}')
     xmlFile = open(f'{outputFile}','w')
+    loggingFunctions().writeScreen(f'Writing Tenant entries for Tenant: {tenant}')
     xmlFile.write("<!-- dn=uni -->\n")
     xmlFile.write('<!-- Above line is required if using deployment script -->\n')
     xmlFile.write(f'<!-- Creating Tenant {tenant} -->\n')
@@ -46,6 +48,7 @@ def writeTenant(tenant, outputFile, csvList):
         #TODO Find and write each AP in this tenant.
             #TODO Find and write each EPG in this AP / Tenant combination.
     xmlFile.write(f'</fvTenant>\n')
+    loggingFunctions().writeScreen(f'Closing Tenant File:\t {outputFile}')
     xmlFile.close()
     return
 
@@ -66,7 +69,6 @@ def getVrfs(csvList, xmlFile, tenant):
     for line in csvList:
         if line['VRF'] not in vrf_dict and line['tenant'] == tenant:
             vrf_dict[(line['VRF'])] = line['vrfEnforced']
-    #writeVrfs(vrf_dict = vrf_dict, xmlFile = xmlFile)
     for vrf in vrf_dict.items():
         writeVrf(vrf_item = vrf, xmlFile = xmlFile)
     return
@@ -84,9 +86,9 @@ def writeVrf(vrf_item, xmlFile, pcEnfPref="enforced"):
     #Default Values for VRF.
     ipDataPlaneLearning = 'enabled'
     #pcEnfPref = "unenforced"
-    #TODO Account for Enforced.
     (vrf), enforced = vrf_item
     enforced = validateEnforced(enforced)
+    loggingFunctions().writeScreen(f'\tAdding VRF {vrf} as {enforced} with Data Plane Learning {ipDataPlaneLearning}')
     xmlFile.write(f'\t<!-- Create {enforced} VRF {vrf} -->\n')
     xmlFile.write(f'\t<fvCtx name={vrf} ipDataPlaneLearning="{ipDataPlaneLearning}" pcEnfPref="{enforced}">\n')
     xmlFile.write('\t</fvCtx>\n')
@@ -101,6 +103,7 @@ def getApps(csvList, xmlFile, tenant):
     return
 
 def writeApps(xmlFile, app, csvList, tenant):
+    loggingFunctions().writeScreen(f'\tWriting APP: {app}')
     xmlFile.write(f'\t<fvAp name="{app}">\n')
     getEPGs(tenant = tenant, app = app, csvList = csvList, xmlFile = xmlFile)
     xmlFile.write('\t</fvAp>\n')
@@ -112,41 +115,54 @@ def getBridgeDomains(xmlFile, csvList, tenant):
         if (line['tenant'], line['VRF'], line['bridgeDomain']) not in bd_dict and line['tenant'] == tenant:
             bd_dict[(line['bridgeDomain'])] = line['VRF']
     for bd_items in bd_dict.items():
-        gateway_dict = findBridgeDomainGateways(csvList = csvList, bd_items = bd_items)
-        writeBridgeDomains(xmlFile = xmlFile, bd_items = bd_items, gateway_dict = gateway_dict)
+        writeBridgeDomains(xmlFile = xmlFile, bd_items = bd_items, csvList = csvList, tenant = tenant)
     return
 
-def findBridgeDomainGateways(csvList, bd_items):
+def findBridgeDomainGateways(csvList, bd, tenant):
     #Looks for all bridge domain default gateways and returns a list
     #of gateways we need to add to the BD when we create it.
-    (bd), vrf = bd_items
     gateway_dict = collections.OrderedDict()
     for line in csvList:
-        if line['bridgeDomain'] == bd and line['VRF'] == vrf and (line['gateway']) not in gateway_dict and (line['gateway'] != 'NA' and line['gateway'] != ''):
-            #add ordered gateway to ordered dictionary
-            gateway_dict[(line['gateway'])] = line['mask']
+        #Check for comma delimited in string
+        if line['tenant'] == tenant and line['bridgeDomain'] == bd and ',' in line['gateway']:
+            #We have to create multiple entries based on each entry.
+            csvGateway_list = [oneGateway.strip() for oneGateway in line['gateway'].split(',')]
+            for csvGateway in csvGateway_list:
+                if re.match(r"(^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$)", csvGateway) is not None:
+                    gateway_dict[(csvGateway)] = line['multiVRF'] 
+                #TODO: We really need to log this if we fail to write it.
+        elif line['bridgeDomain'] == bd and line['tenant'] == tenant:        
+            if line['bridgeDomain'] == bd and (line['gateway']) not in gateway_dict and (line['gateway'] != 'NA' and line['gateway'] != ''):
+                #add ordered gateway to ordered dictionary
+                gateway_dict[((line['gateway']).strip())] = line['multiVRF']
     return gateway_dict
 
-def writeBridgeDomains(xmlFile, bd_items, gateway_dict, scope='public'):
+def writeBridgeDomains(xmlFile, bd_items, csvList, tenant, scope='public'):
     (bd), vrf = bd_items
     limitIpLearnToSubnets = "no"
     epMoveDetectMode = "garp"
     unkMacUcastAct = "flood"
+    loggingFunctions().writeScreen(f'\tWriting Bridge Domain: {bd}')
     xmlFile.write(f'\t<!-- Bridge Domain for {bd} -->\n')
     xmlFile.write(f'\t<fvBD arpFlood="yes" limitIpLearnToSubnets="{limitIpLearnToSubnets}" unkMacUcastAct="{unkMacUcastAct}" epMoveDetectMode="{epMoveDetectMode}" name="{bd}" >\n')
     xmlFile.write(f'\t\t<!-- Assigns VRF {vrf} for Bridge Domain {bd} -->\n')
     xmlFile.write(f'\t\t<fvRsCtx annotation="" tnFvCtxName="{vrf}" />\n')
-    for line in gateway_dict.items():
-        (gateway), mask = line
-        xmlFile.write(f'\t\t<!-- Subnet {gateway}/{mask} written to Bridge Domain {bd} -->\n')
-        xmlFile.write(f'\t\t<fvSubnet ip="{gateway}/{mask}" preferred="yes" scope="public,shared" virtual="no"/>\n')
+    for line in findBridgeDomainGateways(csvList=csvList, bd = bd, tenant = tenant).items():
+        (gateway), multiVRF = line
+        if multiVRF.upper() == 'YES':
+            scope = 'public,shared'
+        else:
+            scope = 'public'
+        loggingFunctions().writeScreen(f'\t\tWriting subnet {gateway} with scope {scope}')
+        xmlFile.write(f'\t\t<!-- Subnet {gateway} written to Bridge Domain {bd} -->\n')
+        xmlFile.write(f'\t\t<fvSubnet ip="{gateway}" scope="{scope}" virtual="no"/>\n')
     xmlFile.write('\t</fvBD>\n')
     return
 
 def getEPGs(xmlFile, app, csvList, tenant):
     epg_dict = {}
     for line in csvList:
-        print(f"Tenant: {tenant}\tApp: {app}\t EPG: {line['epgName']}")
+        #print(f"Tenant: {tenant}\tApp: {app}\t EPG: {line['epgName']}")
         if line['tenant'] == tenant and line['appProfile'] == app and (line['tenant'],line['appProfile'],line['epgName']) not in epg_dict:
             epg_dict[(line['epgName'])] = (line['description'], line['domain'], line['domainType'], line['encap'],line['bridgeDomain'])
     writeEPGs(xmlFile = xmlFile, epg_dict = epg_dict)
@@ -158,7 +174,8 @@ def writeEPGs(xmlFile, epg_dict):
     forgedTransmits = 'accept'
     macChanges = 'reject'
     for epg_item in epg_dict.items():
-        (epgName),(description, domain, domainType, encap, bridgeDomain) = epg_item
+        (epgName), (description, domain, domainType, encap, bridgeDomain) = epg_item
+        loggingFunctions().writeScreen(f'\t\tWriting EPG {epgName}')
         xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
         xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
         if int(encap) >= 1 and int(encap) <= 4999:
@@ -166,10 +183,12 @@ def writeEPGs(xmlFile, epg_dict):
         else:
             encap = 'unknown'
         if domainType.lower() == "vmm":
+            loggingFunctions().writeScreen(f'\t\t\tWriting VMM domain: {domain} with encap {encap}')
             xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/vmmp-VMware/dom-{domain}' encap='{encap}' instrImedcy='immediate' resImedcy='immediate'>\n")
             xmlFile.write(f'\t\t\t\t<vmmSecP allowPromiscuous="{allowPromiscuous}" annotation="" descr="" forgedTransmits="{forgedTransmits}" macChanges="{macChanges}" name="" nameAlias="" ownerKey="" ownerTag=""/>\n')
             xmlFile.write('\t\t\t</fvRsDomAtt>\n')
         elif domainType.lower() == "phys":
+            loggingFunctions().writeScreen(f'\t\t\tWriting Physical domain: {domain} with encap {encap}')
             xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
         xmlFile.write('\t\t</fvAEPg>\n') 
     return
@@ -182,6 +201,36 @@ def processCSV(outputDirectory):
         #Generate Tenant List and write to outputDirectory
         getTenants(outputDirectory = outputDirectory, csvList = csvContent)
 
+class loggingFunctions:
+    def __init__(self):
+        return
+    
+    def writeEvent(self, msg, msgType='INFO'):
+        self.writeScreen(msg, msgType)
+        return
+    
+    def writeLog(self):
+        return
+
+    def writeScreen(self, msg, msgType='INFO'):
+        if msgType == 'INFO':
+            print(f"[ {textColors.INFO}INFO{textColors.noColor} ] {msg}")
+        elif msgType == 'WARN':
+            print(f"[ {textColors.WARN}WARN{textColors.noColor} ] {msg}")
+        elif msgType == "FAIL":
+            print(f"[ {textColors.FAIL}FAIL{textColors.noColor} ] {msg}")
+        else:
+            print(f"[ {textColors.FAIL}UNKNOWN{textColors.noColor} ] {msg}")
+            print(f"This is a developer bug. Script will exit")
+            exit()
+        return
+
+# Colors used in text output that can be called by name. 
+class textColors:
+        noColor = '\x1b[0m'
+        INFO = '\033[32m'
+        WARN = '\033[33m'
+        FAIL = '\033[31m'
 
 rowCount = 1
 processCSV(args.outputDirectory)
