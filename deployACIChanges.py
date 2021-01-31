@@ -120,7 +120,7 @@ def processFile(xmlFile, cookie):
 
     #Format a URL with the APIC address and DN 
     url = makeURL(dn)
-    loggingFunctions().writeEvent(f"url: {url}")
+    loggingFunctions().writeEvent(f"\turl: {url}")
 
     #Read remaining lines of the current file. We are not validating this xml. It will either work or it wont.
     data = thisFileRAW.readlines()
@@ -128,8 +128,8 @@ def processFile(xmlFile, cookie):
     #Headers need to include cookie
     header={"Content-Type": "application/xml", "APIC-cookie": f"{cookie}"}
     
-    # Print URL and header
-    loggingFunctions().writeEvent
+    # Print URL and header if debugging only... Manually uncomment next line if header is required. Cookie makes this a very long line
+    #loggingFunctions().writeEvent(f'\theader: {header}')
 
     if args.failSafe == False:
         loggingFunctions().writeEvent("\t########## FAILSAFE ENABLED - No Changes Will be Made ##########\n\n", "WARN")
@@ -143,9 +143,9 @@ def processFile(xmlFile, cookie):
         fileToMove = thisFileRAW.name
         thisFileRAW.close
         os.rename(f'{fileToMove}', f'{args.processedFolder}{ntpath.basename(fileToMove)}')
-        loggingFunctions().writeEvent('Moved {fileToMove} to {args.processedFolder}', "INFO")
+        loggingFunctions().writeEvent(f'\tMoved {fileToMove} to {args.processedFolder}', "INFO")
         URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN')
-        print(f"Change Result:\t{changeResult.text}")
+        loggingFunctions().writeEvent(f"\tChange Result:\t{changeResult.text}")
     return
 
 def makeURL(dn, dataType='xml', moClass="mo"):
