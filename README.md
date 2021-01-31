@@ -51,8 +51,10 @@ Command line example - Run createXMLfromTSV.py with python3 with the example txt
 # Deploying generated XML files to an APIC
 This script does zero error checking. If you have a properly formatted your xml file, and specify an accessible APIC, the file will be deploy with no error checking and no respect for what is on the APIC.
 
-<span style="color:red">THIS FILE CAN HURT YOUR SYSTEM IF YOU DO NOT UNDERSTAND HOW IT WORKS - YOU SHOULD UNDERSTAND BASIC APIC API DEPLOYMENT AND TEST ON NON_PRODUCTION SYSTEMS BEFORE USING IT!</span>
-<span style=""color:red">DO A BACKUP BEFORE YOU RUN THIS!"</span>
+<span style="color:red">THIS FILE CAN HURT YOUR SYSTEM IF YOU DO NOT UNDERSTAND HOW IT WORKS - YOU SHOULD UNDERSTAND BASIC APIC API DEPLOYMENT AND TEST ON NON_PRODUCTION SYSTEMS BEFORE USING IT!
+  
+DO A BACKUP BEFORE YOU RUN THIS!"</span>
+
 This script requires a fail safe switch to run to ensure you mean to make changes. The script will not run without the --fail-safe switch. 
 
 The first line of any XML file must be a comment line with the dn in it. As on of now, we only support the following entry, but others are expected in the future
