@@ -178,44 +178,63 @@ def getEPGs(xmlFile, app, csvList, tenant):
     writeEPGs(xmlFile = xmlFile, epg_dict = epg_dict)
     return
 
-def writeEPGs(xmlFile, epg_dict):
-    #Default properties for vmmSecurity
+def writeDomains(xmlFile, domain, encap, domainType):
+     #Default properties for vmmSecurity
     allowPromiscuous = 'accept'
     forgedTransmits = 'accept'
     macChanges = 'reject'
+    if int(encap) >= 1 and int(encap) <= 4999:
+        encap = f'vlan-{encap}'
+    else:
+        encap = 'unknown'
+    if domainType.lower() == "vmm":
+        loggingFunctions().writeScreen(f'\t\t\tWriting VMM domain: {domain} with encap {encap}')
+        xmlFile.write(f'\t\t\t<!-- Writting VMWare Domain {domain} with encap {encap}-->\n')
+        xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/vmmp-VMware/dom-{domain}' encap='{encap}' instrImedcy='immediate' resImedcy='immediate'>\n")
+        xmlFile.write(f'\t\t\t\t<vmmSecP allowPromiscuous="{allowPromiscuous}" annotation="" descr="" forgedTransmits="{forgedTransmits}" macChanges="{macChanges}" name="" nameAlias="" ownerKey="" ownerTag=""/>\n')
+        xmlFile.write('\t\t\t</fvRsDomAtt>\n')
+    elif domainType.lower() == "phys":
+        loggingFunctions().writeScreen(f'\t\t\tWriting Physical domain: {domain} with encap {encap}')
+        xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
+    return
+
+def writeProvidedContract(xmlFile, providedContract):
+    if ',' in providedContract:
+        providedContracts = [oneProvContract.strip() for oneProvContract in providedContract.split(',')]
+        for pc in providedContracts:
+            xmlFile.write(f'\t\t\t<!-- Writting Provided Contract {pc} -->')
+            xmlFile.write(f'\t\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{pc}"/>\n')
+    elif providedContract != '' and providedContract != 'NA':
+        loggingFunctions().writeScreen(f'\t\tWriting provided contract {providedContract}')
+        xmlFile.write(f'\t\t\t<!-- Writting Provided Contract {providedContract} -->\n')
+        xmlFile.write(f'\t\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{providedContract}"/>\n')
+    return
+
+def writeConsumedContract(xmlFile, consumedContract):
+    if ',' in consumedContract:
+        consumedContracts = [oneConContract.strip() for oneConContract in consumedContract.split(',')]
+        for cc in consumedContracts:
+            xmlFile.write(f'\t\t\t<!-- Writting Consumed Contract {cc} -->\n')
+            loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {cc}')
+            xmlFile.write(f'\t\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{cc}"/>\n')
+    elif consumedContract != '' and consumedContract != 'NA':
+        loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {consumedContract}')
+        xmlFile.write(f'\t\t\t<!-- Writting Consumed Contract {consumedContract} -->\n')
+        xmlFile.write(f'\t\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{consumedContract}"/>\n')
+    return
+
+
+def writeEPGs(xmlFile, epg_dict):
     for epg_item in epg_dict.items():
         (epgName), (description, domain, domainType, encap, bridgeDomain, providedContract, consumedContract) = epg_item
         loggingFunctions().writeScreen(f'\t\tWriting EPG {epgName}')
+        xmlFile.write(f'\t\t<!-- Writting EPG {epgName} -->')
         xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
+        xmlFile.write(f'\t\t\t<!-- Writting Bridge Domain {bridgeDomain} -->')
         xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
-        if int(encap) >= 1 and int(encap) <= 4999:
-            encap = f'vlan-{encap}'
-        else:
-            encap = 'unknown'
-        if domainType.lower() == "vmm":
-            loggingFunctions().writeScreen(f'\t\t\tWriting VMM domain: {domain} with encap {encap}')
-            xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/vmmp-VMware/dom-{domain}' encap='{encap}' instrImedcy='immediate' resImedcy='immediate'>\n")
-            xmlFile.write(f'\t\t\t\t<vmmSecP allowPromiscuous="{allowPromiscuous}" annotation="" descr="" forgedTransmits="{forgedTransmits}" macChanges="{macChanges}" name="" nameAlias="" ownerKey="" ownerTag=""/>\n')
-            xmlFile.write('\t\t\t</fvRsDomAtt>\n')
-        elif domainType.lower() == "phys":
-            loggingFunctions().writeScreen(f'\t\t\tWriting Physical domain: {domain} with encap {encap}')
-            xmlFile.write(f"\t\t\t<fvRsDomAtt tDn='uni/phys-{domain}' instrImedcy='immediate' resImedcy='immediate' />\n")
-        if ',' in providedContract:
-            providedContracts = [oneProvContract.strip() for oneProvContract in providedContract.split(',')]
-            for pc in providedContracts:
-                xmlFile.write(f'\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{pc}"/>')
-        elif providedContract != '' and providedContract != 'NA':
-            loggingFunctions().writeScreen(f'\t\tWriting provided contract {providedContract}')
-            xmlFile.write(f'\t\t<fvRsProv annotation="" intent="install" matchT="AtleastOne" prio="unspecified" tnVzBrCPName="{providedContract}"/>')
-
-        if ',' in consumedContract:
-            consumedContracts = [oneConContract.strip() for oneConContract in consumedContract.split(',')]
-            for cc in consumedContracts:
-                loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {cc}')
-                xmlFile.write(f'\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{cc}"/>')
-        elif consumedContract != '' and consumedContract != 'NA':
-            loggingFunctions().writeScreen(f'\t\tWriting Consumed contract {consumedContract}')
-            xmlFile.write(f'\t\t<fvRsCons annotation="" intent="install" prio="unspecified" tnVzBrCPName="{consumedContract}"/>')
+        writeDomains(xmlFile = xmlFile, domain = domain, encap = encap, domainType = domainType)
+        writeProvidedContract(xmlFile=xmlFile, providedContract=providedContract)
+        writeConsumedContract(xmlFile = xmlFile, consumedContract = consumedContract)
         xmlFile.write('\t\t</fvAEPg>\n') 
     return
 
