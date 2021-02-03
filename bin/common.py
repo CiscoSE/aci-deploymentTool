@@ -1,6 +1,7 @@
 import requests as URL
 # Disable warnings regarding certificates. 
 URL.packages.urllib3.disable_warnings()
+URL.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ':HIGH:!DH:!aNULL'
 
 class urlFunctions:
     def __init__(self, args):
