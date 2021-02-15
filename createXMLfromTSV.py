@@ -228,7 +228,7 @@ def writeEPGs(xmlFile, epg_dict):
     for epg_item in epg_dict.items():
         (epgName), (description, domain, domainType, encap, bridgeDomain, providedContract, consumedContract) = epg_item
         loggingFunctions().writeScreen(f'\t\tWriting EPG {epgName}')
-        xmlFile.write(f'\t\t<!-- Writting EPG {epgName} -->')
+        xmlFile.write(f'\t\t<!-- Writting EPG {epgName} -->\n')
         xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
         xmlFile.write(f'\t\t\t<!-- Writting Bridge Domain {bridgeDomain} -->')
         xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
