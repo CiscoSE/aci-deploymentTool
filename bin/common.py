@@ -27,12 +27,16 @@ class urlFunctions:
         self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
         return getCookieResponse
     
-    def httpErrorReporting(self, status, reason='', msgType='FAIL'):
+    def httpErrorReporting(self, status, reason='', msgType='FAIL', reportResult=False):
         if status in range(200, 299):
             self.writeEvent(msg=f'\tAPI Access Completed Successfully')
+            if reportResult == True:
+                return True
         elif status in range(400, 599):
             self.writeEvent(msg=f'\tAPI Access Failed\tReason: {reason}',msgType=msgType)
-            self.writeEvent(msg='Script will exit',msgType=msgType)
+            self.writeEvent(msg='Script will exit', msgType=msgType)
+            if reportResult == True:
+                return False
         return
 
 class loggingFunctions:
