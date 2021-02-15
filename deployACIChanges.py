@@ -142,9 +142,12 @@ def processFile(xmlFile, cookie):
         changeResult = URL.getData(htmlMethod="POST", data=data, url=url, headers=header, cookies=cookie)
         fileToMove = thisFileRAW.name
         thisFileRAW.close
-        os.rename(f'{fileToMove}', f'{args.processedFolder}{ntpath.basename(fileToMove)}')
+        urlResult = URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN', reportResult=True)
+        if urlResult == True:
+            os.rename(f'{fileToMove}', f'{args.processedFolder}{ntpath.basename(fileToMove)}.success')
+        else:
+            os.rename(f'{fileToMove}', f'{args.processedFolder}{ntpath.basename(fileToMove)}.failed')
         loggingFunctions().writeEvent(f'\tMoved {fileToMove} to {args.processedFolder}', "INFO")
-        URL.httpErrorReporting(status=changeResult.status_code, reason=changeResult.reason, msgType='WARN')
         loggingFunctions().writeEvent(f"\tChange Result:\t{changeResult.text}")
     return
 
@@ -153,7 +156,7 @@ def makeURL(dn, dataType='xml', moClass="mo"):
 
 def handleDnFailure():
     #Simple routine to handle yes or no input. 
-    #TODO Wold be better if this routine just returned true or false so I could use it elsewhere without modification. 
+    #TODO Would be better if this routine just returned true or false so I could use it elsewhere without modification. 
     while True:
         question = input('\nDo you want to continue to process other files if they remain?\n')
 
