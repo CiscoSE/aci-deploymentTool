@@ -230,7 +230,7 @@ def writeEPGs(xmlFile, epg_dict):
         loggingFunctions().writeScreen(f'\t\tWriting EPG {epgName}')
         xmlFile.write(f'\t\t<!-- Writting EPG {epgName} -->\n')
         xmlFile.write(f'\t\t<fvAEPg name="{epgName}" descr="{description}">\n')
-        xmlFile.write(f'\t\t\t<!-- Writting Bridge Domain {bridgeDomain} -->')
+        xmlFile.write(f'\t\t\t<!-- Writting Bridge Domain {bridgeDomain} -->\n')
         xmlFile.write(f'\t\t\t<fvRsBd annotation="" tnFvBDName="{bridgeDomain}"/>\n')
         writeDomains(xmlFile = xmlFile, domain = domain, encap = encap, domainType = domainType)
         writeProvidedContract(xmlFile=xmlFile, providedContract=providedContract)
