@@ -24,7 +24,10 @@ class urlFunctions:
         self.writeEvent(msg = f"URL: {url}")
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
         getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
-        self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason)
+        getCookieSuccess = self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason, reportResult=True)
+        if getCookieSuccess != True:
+            self.writeEvent('Failed to get Cookie. Script will exit.', msgType='FAIL')
+            exit()
         return getCookieResponse
     
     def httpErrorReporting(self, status, reason='', msgType='FAIL', reportResult=False):
