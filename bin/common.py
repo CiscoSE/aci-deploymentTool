@@ -23,7 +23,12 @@ class urlFunctions:
         url = "https://{0}{1}".format(self.apic, "/api/aaaLogin.xml")
         self.writeEvent(msg = f"URL: {url}")
         logonRequest="<aaaUser name='{0}' pwd='{1}' />".format(user,password)
-        getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
+        try:
+            getCookieResponse = self.getData(url=url, htmlMethod="POST", data=logonRequest)
+        except:
+            self.writeEvent('Failed to get Cookie. Script will exit.', msgType='FAIL')
+            exit()
+
         getCookieSuccess = self.httpErrorReporting(status=getCookieResponse.status_code, reason=getCookieResponse.reason, reportResult=True)
         if getCookieSuccess != True:
             self.writeEvent('Failed to get Cookie. Script will exit.', msgType='FAIL')
@@ -37,7 +42,10 @@ class urlFunctions:
                 return True
         elif status in range(400, 599):
             self.writeEvent(msg=f'\tAPI Access Failed\tReason: {reason}',msgType=msgType)
-            self.writeEvent(msg='Script will exit', msgType=msgType)
+            if reportResult == True:
+                return False
+        else:
+            # We have no idea what happend, so we respond false.
             if reportResult == True:
                 return False
         return
