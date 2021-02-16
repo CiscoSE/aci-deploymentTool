@@ -1,0 +1,31 @@
+<!-- dn=uni -->
+<polUni>
+    <infraInfra>
+        <!-- Create Initial port selector policies. In this case for leaf 101 and leaf 102 -->
+        <infraAccPortP annotation="" descr="" dn="uni/infra/accportprof-L101" name="L101" nameAlias="" ownerKey="" ownerTag="" userdom=":all:"/>
+        <infraAccPortP annotation="" descr="" dn="uni/infra/accportprof-L102" name="L102" nameAlias="" ownerKey="" ownerTag="" userdom=":all:"/>
+        <!-- Create Initial port selector policies for VCP for Leaf 101 and Leaf 102. This allows one selector to configure both switches. -->
+        <infraAccPortP annotation="" descr="" dn="uni/infra/accportprof-L101-L102" name="L101-L102" nameAlias="" ownerKey="" ownerTag="" userdom=":all:"/>
+
+        <!-- Create switch policy for leaf 101 and leaf 102 -->
+        <infraNodeP annotation="" descr="" dn="uni/infra/nprof-L101" name="L101" nameAlias="" ownerKey="" ownerTag="" userdom=":all:">
+            <infraRsAccPortP annotation="" tDn="uni/infra/accportprof-L101" userdom=":all:"/>
+            <infraLeafS annotation="" descr="" name="L101" nameAlias="" ownerKey="" ownerTag="" type="range" userdom=":all:">
+                <infraNodeBlk annotation="" descr="" from_="101" name="101" nameAlias="" to_="101" userdom=":all:"/>
+            </infraLeafS>
+        </infraNodeP>
+        <infraNodeP annotation="" descr="" dn="uni/infra/nprof-L102" name="L102" nameAlias="" ownerKey="" ownerTag="" userdom=":all:">
+            <infraRsAccPortP annotation="" tDn="uni/infra/accportprof-L102" userdom=":all:"/>
+            <infraLeafS annotation="" descr="" name="L102" nameAlias="" ownerKey="" ownerTag="" type="range" userdom=":all:">
+                <infraNodeBlk annotation="" descr="" from_="102" name="102" nameAlias="" to_="102" userdom=":all:"/>
+            </infraLeafS>
+        </infraNodeP>
+        <!-- Create switch policy for leaf 101 and leaf 102 VPC -->
+        <infraNodeP annotation="" descr="" dn="uni/infra/nprof-L101-L102" name="L101-L102" nameAlias="" ownerKey="" ownerTag="" userdom=":all:">
+            <infraRsAccPortP annotation="" tDn="uni/infra/accportprof-L101-L102" userdom=":all:"/>
+            <infraLeafS annotation="" descr="" name="L101-L102" nameAlias="" ownerKey="" ownerTag="" type="range" userdom=":all:">
+                <infraNodeBlk annotation="" descr="" from_="101" name="101-102" nameAlias="" to_="102" userdom=":all:"/>
+            </infraLeafS>
+        </infraNodeP>
+    </infraInfra>
+</polUni>
