@@ -135,18 +135,24 @@ class tsvProcessing:
         return
 
     def getSubjects(self, contract, tenant, xmlFile):
-        subject_list = []
+        subject_dict = {}
         for line in self.tsvList:
-            if line['tenant'] == tenant and line['contractName'] == contract and line['contractSubject'] not in subject_list:
-                subject_list.append(line['contractSubject'])
-        for subject in subject_list:
-            self.writeSubjects(tenant=tenant, contract=contract, subject=subject, xmlFile=xmlFile)
+            if line['tenant'] == tenant and line['contractName'] == contract and line['contractSubject'] not in subject_dict:
+                subject_dict[(line['contractSubject'])] = line['reversed']
+        for subject in subject_dict.items():
+            self.writeSubject(tenant=tenant, contract=contract, subject=subject, xmlFile=xmlFile)
         return
     
     
-    def writeSubjects(self, tenant, contract, subject, xmlFile):
-        xmlFile.write(f'\t\t<vzSubj name="{subject}" consMatchT="AtleastOne" provMatchT="AtleastOne" revFltPorts="yes" >\n')
-        self.getFilters(tenant=tenant, contract=contract, subject=subject, xmlFile=xmlFile)
+    def writeSubject(self, tenant, contract, subject, xmlFile):
+        (subjectName), reversedPort = subject
+        if reversedPort == False or reversedPort.lower() == "no":
+            reversedPortValue = "no"
+        else:
+            reversedPortValue = "yes"
+
+        xmlFile.write(f'\t\t<vzSubj name="{subjectName}" consMatchT="AtleastOne" provMatchT="AtleastOne" revFltPorts="{reversedPortValue}" >\n')
+        self.getFilters(tenant=tenant, contract=contract, subject=subjectName, xmlFile=xmlFile)
         xmlFile.write(f'\t\t</vzSubj> \n')
         return
     

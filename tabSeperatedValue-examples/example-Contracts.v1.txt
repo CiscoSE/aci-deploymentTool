@@ -1,5 +1,5 @@
-tenant	contractName	contractSubject	contractScope	consumedMatch	providedMatch	subjectFilters
-VMWare-DVS	IPERF3	IPERF3-In	tenant	Atleastone	Atleastone	"IPERF,default"
-VMWare-DVS	IPERF3	IPERF3-Out	tenant	Atleastone	Atleastone	"IPERF,default"
-VMWare-DVS	IPERF4	IPERF4-In	tenant	Atleastone	Atleastone	"IPERF,default"
-VMWare-DVS	IPERF4	IPERF4-Out	tenant	Atleastone	Atleastone	"IPERF,default"
+tenant	contractName	contractSubject	contractScope	consumedMatch	providedMatch	subjectFilters	reversed
+VMWare-DVS	IPERF3-in	IPERF3-in	tenant	Atleastone	Atleastone	"IPERF,default"	TRUE
+VMWare-DVS	IPERF3-out	IPERF3-out	tenant	Atleastone	Atleastone	"IPERF,default"	TRUE
+VMWare-DVS	IPERF4-In	IPERF4-In	tenant	Atleastone	Atleastone	"IPERF,default"	TRUE
+VMWare-DVS	IPERF4-Out	IPERF4-Out	tenant	Atleastone	Atleastone	"IPERF,default"	TRUE
