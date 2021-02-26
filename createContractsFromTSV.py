@@ -169,7 +169,7 @@ class tsvProcessing:
                             self.writeFilter(filter=filter, xmlFile=xmlFile)
                 else:
                     filter_list.append(line['subjectFilters'])
-                    self.writeFilter(filter=filter, xmlFile=xmlFile)
+                    self.writeFilter(filter=line['subjectFilters'], xmlFile=xmlFile)
 
         return
 
