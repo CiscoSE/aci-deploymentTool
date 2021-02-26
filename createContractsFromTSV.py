@@ -87,7 +87,7 @@ class tsvProcessing:
         loggingFunctions().writeScreen(f'Writing Tenant entries for Tenant: {tenant}')
         #We need this for the deployment script, but we make it as comment so we can ignore it if pushing via curl or similar method.
         xmlFile.write(f"<!-- dn=uni/tn-{tenant} -->\n")
-        xmlFile.write(f'<!-- Creating Tenant {tenant} -->\n')
+        xmlFile.write(f'<!-- Creating Tenant reference place holder, which allows for multiple contracts in the same file -->\n')
         #Because the DN points to the tenant, we don't need the tenant name or DN in the tenant object itself. 
         #We add this so we can do multiple contracts under a single tenant. 
         xmlFile.write(f'<fvTenant>\n')
@@ -129,6 +129,7 @@ class tsvProcessing:
     def writeContracts(self, contract_list, tenant, xmlFile):
         for contract in contract_list:
             contractScope = self.returnScope(tenant=tenant, contract=contract)
+            xmlFile.write(f'\t<!-- This is the name of the contract -->\n')
             xmlFile.write(f'\t<vzBrCP intent="install" name="{contract}" scope="{contractScope}" >\n')
             self.getSubjects(contract=contract,tenant=tenant,xmlFile=xmlFile)
             xmlFile.write(f'\t</vzBrCP>\n')
@@ -150,7 +151,7 @@ class tsvProcessing:
             reversedPortValue = "no"
         else:
             reversedPortValue = "yes"
-
+        xmlFile.write(f'\t\t<!-- This is the subject under contract {contract} -->\n')
         xmlFile.write(f'\t\t<vzSubj name="{subjectName}" consMatchT="AtleastOne" provMatchT="AtleastOne" revFltPorts="{reversedPortValue}" >\n')
         self.getFilters(tenant=tenant, contract=contract, subject=subjectName, xmlFile=xmlFile)
         xmlFile.write(f'\t\t</vzSubj> \n')
@@ -173,6 +174,7 @@ class tsvProcessing:
         return
 
     def writeFilter(self, filter, xmlFile):
+        xmlFile.write(f'\t\t\t<!-- These are the filters for allowed protocols --> \n')
         xmlFile.write(f'\t\t\t<vzRsSubjFiltAtt action="permit" tnVzFilterName="{filter}" />\n')
         return
 tsvProcessing(args).main()
