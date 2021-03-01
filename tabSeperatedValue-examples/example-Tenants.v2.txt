@@ -1,13 +1,13 @@
 bridgeDomain	gateway	tenant	VRF	vrfEnforced	appProfile	description	epgName	domain	domainType	providedContract	consumedContract	encap	l3Out	multiVRF	RP
-BD_100	172.16.200.2/30	SERVICES	services-vrf	TRUE	Management	ESXi Management EPG	Lw	Infrastructure	phys			1200	L3Out_OOB	YES	10.200.1.1
-BD_101	172.16.200.5/30	SERVICES	services-vrf	TRUE	Management	HX Storage Data EPG	EPG_1201	Infrastructure	phys			1201	NA	NA	
-BD_1202	172.16.200.9/30	SERVICES	services-vrf	TRUE	Management	ESXi vMtion EPG	EPG_1202	Infrastructure	phys			1202	NA	NA	NA
-BD_1203	172.16.200.13/30	SERVICES	services-uneforced-vrf	FALSE	Management	HX Storage Data EPG HX-2	EPG_1203	Infrastructure	phys			1203	NA	NA	NA
-BD_199	172.16.200.17/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 199	EPG_199	EXAMPLE-hx-dvs	vmm			199	NA	YES	NA
-BD_100	172.16.200.21/30	EXAMPLE	example-vrf	TRUE	EXAMPLE2	Vlan 100	EPG_100	EXAMPLE-hx-dvs	vmm			100	NA	YES	NA
-BD_225	172.16.200.25/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 225	EPG_225	EXAMPLE-hx-dvs	vmm			225	NA	YES	NA
-BD_235	172.16.200.29/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 235	EPG_235	EXAMPLE-hx-dvs	vmm			235	NA	YES	NA
-BD_3131	172.16.200.33/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 3131	EPG_3131	EXAMPLE-hx-dvs	vmm			3131	NA	YES	NA
-BD_12	172.16.200.37/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 12	EPG_12	EXAMPLE-hx-dvs	vmm			12	NA	YES	NA
-BD_200	"172.16.200.41/30,172.16.200.45/30"	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 200	EPG_200	EXAMPLE-hx-dvs	vmm			200	NA	YES	NA
-BD_30		EXAMPLE	example-uneforced-vrf	FALSE	EXAMPLE	Vlan 30	EPG_30	EXAMPLE-hx-dvs				30	NA	YES	NA
+BD_100	172.16.205.2/30	SERVICES	services-vrf	TRUE	Management	ESXi Management EPG	Lw	Infrastructure	phys			1200	L3Out_OOB	YES	10.200.1.1
+BD_101	172.16.205.5/30	SERVICES	services-vrf	TRUE	Management	HX Storage Data EPG	EPG_1201	Infrastructure	phys			1201	NA	NA	
+BD_1202	172.16.205.9/30	SERVICES	services-vrf	TRUE	Management	ESXi vMtion EPG	EPG_1202	Infrastructure	phys			1202	NA	NA	NA
+BD_1203	172.16.205.13/30	SERVICES	services-uneforced-vrf	FALSE	Management	HX Storage Data EPG HX-2	EPG_1203	Infrastructure	phys			1203	NA	NA	NA
+BD_199	172.16.205.17/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 199	EPG_199	EXAMPLE-hx-dvs	vmm			199	NA	YES	NA
+BD_100	172.16.205.21/30	EXAMPLE	example-vrf	TRUE	EXAMPLE2	Vlan 100	EPG_100	EXAMPLE-hx-dvs	vmm			100	NA	YES	NA
+BD_225	172.16.205.25/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 225	EPG_225	EXAMPLE-hx-dvs	vmm			225	NA	YES	NA
+BD_235	172.16.205.29/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 235	EPG_235	EXAMPLE-hx-dvs	vmm			235	NA	YES	NA
+BD_3131	172.16.205.33/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 3131	EPG_3131	EXAMPLE-hx-dvs	vmm			3131	NA	YES	NA
+BD_12	172.16.205.37/30	EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 12	EPG_12	EXAMPLE-hx-dvs	vmm			12	NA	YES	NA
+BD_200		EXAMPLE	example-vrf	TRUE	EXAMPLE	Vlan 200	EPG_200	EXAMPLE-hx-dvs	vmm			200	NA	YES	NA
+BD_200		EXAMPLE	example-uneforced-vrf	FALSE	EXAMPLE	Vlan 30	EPG_30	EXAMPLE-hx-dvs				30	NA	YES	NA
